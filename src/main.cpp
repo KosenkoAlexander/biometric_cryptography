@@ -1,5 +1,7 @@
+#include <cstdint>
 #include <forward_list>
 #include<iostream>
+#include <opencv2/core/hal/interface.h>
 #include <opencv2/opencv.hpp>
 #include"data_IO/image_IO.hpp"
 #include"image_processing/preprocessing/contrast_enhancement.hpp"
@@ -7,7 +9,8 @@
 #include"biometrics/feature_extraction.hpp"
 #include<filesystem>
 #include<chrono>
-
+#include<stdint.h>
+#include<bit>
 
 using namespace std;
 
@@ -20,6 +23,18 @@ const char* dataset_path = "/home/kosenko/Downloads/DB1_B/";
 #define duration_s(x) chrono::duration_cast<chrono::duration<float>>(x).count()
 
 const char* t_names[] = {"read", "histogram equalization", "CLAHE", "binarization", "thinning", "feature extraction"};
+
+int64_t avg_xor(forward_list<fingerprint_feature> minutia){
+    double x_avg=0,y_avg=0;
+    int c=0;
+    for(auto i=minutia.begin(); i!=minutia.end(); i++,c++){
+        x_avg+=i->x;
+        y_avg+=i->y;
+    }
+    x_avg/=c;
+    y_avg/=c;
+    return std::bit_cast<int64_t>(x_avg) ^ std::bit_cast<int64_t>(y_avg);
+}
 
 int main(){
     const int tn = 7;
@@ -75,4 +90,5 @@ int main(){
     for(int i=0; i<tn-1; i++){
         cout <<t_names[i]<<' '<<t_avg[i]/i_n*1000<<"ms\n";
     }
+    
 }
